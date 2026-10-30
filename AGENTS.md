@@ -7,6 +7,7 @@ view/count.
 - Dùng pnpm 10, không dùng npm/yarn.
 - Chỉ đọc biến môi trường trong `src/config.ts`.
 - Mọi truy vấn phải parameterized và tài khoản production phải chỉ có quyền SELECT.
-- Không render HTML từ `note_links.content`; nội dung legacy phải được escape.
+- Chỉ render HTML từ `note_links.content` sau khi qua allowlist sanitizer; không
+  cho phép script, event handler, inline style hoặc URL scheme nguy hiểm.
 - Mỗi thay đổi phải qua `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
 - Không commit `.env*` ngoài `.env.example`.

@@ -12,7 +12,8 @@ không đọc PostgreSQL và không ghi view, access log hay revenue.
 - Note có mật khẩu: trả trang khóa `403`, không đưa nội dung vào HTML.
 - Note đã xóa, hết hạn, inactive hoặc rỗng: trả trang giải thích `410`.
 - Alias không tồn tại: trả `404`.
-- Nội dung được render dạng text và escape toàn bộ HTML legacy để tránh XSS.
+- Nội dung HTML legacy được render qua allowlist sanitizer; script, event
+  handler, inline style và URL scheme nguy hiểm đều bị loại bỏ.
 - Mọi trang note dùng `noindex`, `no-store`; app không có JavaScript phía client.
 
 Nếu bảng có alias trùng, app chọn dòng có `id` nhỏ nhất. Đây cũng là thứ tự mà

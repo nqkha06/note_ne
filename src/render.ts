@@ -1,3 +1,5 @@
+import sanitizeHtml from "sanitize-html";
+
 import type { LegacyNote } from "./note.js";
 
 function escapeHtml(value: string) {
@@ -7,6 +9,70 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+const NOTE_HTML_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "a",
+    "article",
+    "aside",
+    "blockquote",
+    "br",
+    "code",
+    "del",
+    "div",
+    "em",
+    "figcaption",
+    "figure",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "li",
+    "ol",
+    "p",
+    "pre",
+    "s",
+    "section",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "u",
+    "ul",
+  ],
+  allowedAttributes: {
+    a: ["href", "rel", "target", "title"],
+    li: ["value"],
+    ol: ["reversed", "start", "type"],
+    td: ["colspan", "rowspan"],
+    th: ["colspan", "rowspan", "scope"],
+  },
+  allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowProtocolRelative: false,
+  transformTags: {
+    a: (_tagName, attribs) => ({
+      tagName: "a",
+      attribs: {
+        ...attribs,
+        rel: "nofollow noopener noreferrer",
+      },
+    }),
+  },
+};
+
+export function sanitizeNoteContent(content: string) {
+  return sanitizeHtml(content, NOTE_HTML_OPTIONS);
 }
 
 function document(title: string, main: string) {
@@ -22,7 +88,7 @@ function document(title: string, main: string) {
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <span class="brand"><span class="brand-mark" aria-hidden="true">N</span>STU Note</span>
+      <span class="brand"><span class="brand-mark" aria-hidden="true">L</span>Link4Sub</span>
     </div>
   </header>
   <main class="page">${main}</main>
@@ -37,7 +103,7 @@ export function renderNote(note: LegacyNote) {
     `<article class="note">
       <div class="note-inner">
         <h1>${escapeHtml(title)}</h1>
-        <div class="note-body">${escapeHtml(note.content)}</div>
+        <div class="note-body">${sanitizeNoteContent(note.content)}</div>
       </div>
     </article>`,
   );

@@ -1,29 +1,13 @@
 export const stylesheet = String.raw`
 :root {
-  color-scheme: light dark;
-  --background: #f7f8fa;
+  color-scheme: only light;
+  --background: #ffffff;
   --foreground: #17181b;
-  --card: #fffdf0;
-  --card-border: #e5dfb4;
+  --card: #ffffff;
+  --card-border: #e5e7eb;
   --muted: #686d76;
   --border: #e1e3e7;
-  --brand: #6366d9;
-  --line: rgba(93, 84, 30, 0.10);
-  --margin-line: rgba(197, 59, 71, 0.24);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #f5f6f7;
-    --card: #1c1b14;
-    --card-border: #3b3823;
-    --muted: #aeb2ba;
-    --border: #26282d;
-    --brand: #8588f0;
-    --line: rgba(242, 233, 173, 0.08);
-    --margin-line: rgba(225, 91, 101, 0.30);
-  }
+  --brand: #2563eb;
 }
 
 * { box-sizing: border-box; }
@@ -83,24 +67,10 @@ body {
   border: 1px solid var(--card-border);
   border-radius: 16px;
   background-color: var(--card);
-  background-image: repeating-linear-gradient(
-    transparent 0,
-    transparent 31px,
-    var(--line) 32px
-  );
-  box-shadow: 0 12px 32px rgba(24, 28, 36, 0.06);
+  box-shadow: 0 10px 30px rgba(24, 28, 36, 0.05);
 }
 
-.note::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  left: clamp(28px, 6vw, 52px);
-  width: 2px;
-  background: var(--margin-line);
-}
-
-.note-inner { position: relative; padding-left: clamp(20px, 4vw, 36px); }
+.note-inner { position: relative; }
 
 h1 {
   margin: 0 0 28px;
@@ -112,8 +82,24 @@ h1 {
 .note-body {
   overflow-wrap: anywhere;
   font-size: clamp(16px, 2.4vw, 18px);
-  line-height: 32px;
+  line-height: 1.7;
   white-space: pre-wrap;
+}
+
+.note-body > :first-child { margin-top: 0; }
+.note-body > :last-child { margin-bottom: 0; }
+.note-body p, .note-body ul, .note-body ol, .note-body blockquote, .note-body pre, .note-body table { margin-block: 1em; }
+.note-body a { color: var(--brand); text-underline-offset: 3px; }
+.note-body blockquote { margin-inline: 0; padding-left: 18px; border-left: 3px solid var(--border); color: var(--muted); }
+.note-body pre { overflow-x: auto; padding: 16px; border-radius: 8px; background: #f3f4f6; }
+.note-body code { padding: 0.15em 0.35em; border-radius: 4px; background: #f3f4f6; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
+.note-body pre code { padding: 0; background: transparent; }
+.note-body table { width: 100%; border-collapse: collapse; }
+.note-body th, .note-body td { padding: 10px 12px; border: 1px solid var(--border); text-align: left; }
+.note-body hr { margin-block: 28px; border: 0; border-top: 1px solid var(--border); }
+.note-body h1, .note-body h2, .note-body h3, .note-body h4, .note-body h5, .note-body h6 {
+  margin: 1.4em 0 0.55em;
+  line-height: 1.25;
 }
 
 .state {
