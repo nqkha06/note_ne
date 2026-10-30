@@ -109,6 +109,24 @@ export function renderNote(note: LegacyNote) {
   );
 }
 
+export function renderPasswordForm(note: LegacyNote, error?: string) {
+  const title = note.title?.trim() || `Ghi chú ${note.alias}`;
+  return document(
+    title,
+    `<section class="unlock">
+      <p class="state-code">Được bảo vệ</p>
+      <h1>${escapeHtml(title)}</h1>
+      <p class="unlock-description">Nhập mật khẩu để mở ghi chú này.</p>
+      <form class="unlock-form" method="post" action="/${encodeURIComponent(note.alias)}">
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+        ${error ? `<p class="unlock-error" role="alert">${escapeHtml(error)}</p>` : ""}
+        <button type="submit">Mở ghi chú</button>
+      </form>
+    </section>`,
+  );
+}
+
 export function renderState(
   code: string,
   title: string,

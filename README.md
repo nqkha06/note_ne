@@ -9,7 +9,9 @@ không đọc PostgreSQL và không ghi view, access log hay revenue.
 
 - Note `status = active` hoặc `1`, chưa xóa, chưa hết hạn, không có mật khẩu:
   trả trang nội dung `200`.
-- Note có mật khẩu: trả trang khóa `403`, không đưa nội dung vào HTML.
+- Note có mật khẩu: hiện form mở khóa, kiểm hash bcrypt/Argon2 của Laravel và
+  cấp cookie HttpOnly trong 1 giờ khi nhập đúng; không đưa nội dung vào HTML
+  trước khi xác thực.
 - Note đã xóa, hết hạn, inactive hoặc rỗng: trả trang giải thích `410`.
 - Alias không tồn tại: trả `404`.
 - Nội dung HTML legacy được render qua allowlist sanitizer; script, event

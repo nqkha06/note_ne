@@ -3,6 +3,8 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, describe, it } from "node:test";
 
+import { hashSync as hashBcrypt } from "bcryptjs";
+
 import { createRequestHandler } from "./app.js";
 import type { LegacyNote } from "./note.js";
 import type { NoteRepository } from "./note-repository.js";
@@ -21,7 +23,7 @@ const notes = new Map<string, LegacyNote>([
     alias: "locked-note",
     title: "Riêng tư",
     content: "Không được lộ",
-    password: "$2y$hash",
+    password: hashBcrypt("open-sesame", 4).replace(/^\$2b\$/, "$2y$"),
     status: "active",
     isDeleted: false,
     isExpired: false,
@@ -63,10 +65,44 @@ describe("HTTP app", () => {
     assert.equal(response.headers.get("cache-control"), "private, no-store");
   });
 
-  it("does not expose password-protected content", async () => {
+  it("shows an unlock form without exposing password-protected content", async () => {
     const response = await fetch(`${origin}/locked-note`);
-    assert.equal(response.status, 403);
-    assert.doesNotMatch(await response.text(), /Không được lộ/);
+    assert.equal(response.status, 200);
+    const body = await response.text();
+    assert.match(body, /name="password"/);
+    assert.doesNotMatch(body, /Không được lộ/);
+  });
+
+  it("rejects a wrong password and unlocks with a signed cookie after a correct one", async () => {
+    const wrong = await fetch(`${origin}/locked-note`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ password: "wrong" }),
+      redirect: "manual",
+    });
+    assert.equal(wrong.status, 401);
+    assert.match(await wrong.text(), /Mật khẩu không đúng/);
+
+    const correct = await fetch(`${origin}/locked-note`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Forwarded-Proto": "https",
+      },
+      body: new URLSearchParams({ password: "open-sesame" }),
+      redirect: "manual",
+    });
+    assert.equal(correct.status, 303);
+    assert.equal(correct.headers.get("location"), "/locked-note");
+    const setCookie = correct.headers.get("set-cookie");
+    assert.match(setCookie ?? "", /HttpOnly/);
+    assert.match(setCookie ?? "", /Secure/);
+
+    const unlocked = await fetch(`${origin}/locked-note`, {
+      headers: { Cookie: setCookie?.split(";", 1)[0] ?? "" },
+    });
+    assert.equal(unlocked.status, 200);
+    assert.match(await unlocked.text(), /Không được lộ/);
   });
 
   it("distinguishes unavailable and missing notes", async () => {

@@ -120,6 +120,46 @@ h1 {
 .state h1 { margin-bottom: 12px; }
 .state p { margin: 0; color: var(--muted); line-height: 1.6; }
 
+.unlock {
+  width: min(100%, 460px);
+  margin: 8vh auto 0;
+  padding: clamp(28px, 6vw, 44px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(24, 28, 36, 0.05);
+}
+
+.unlock h1 { margin-bottom: 10px; }
+.unlock-description { margin: 0 0 26px; color: var(--muted); line-height: 1.6; }
+.unlock-form { display: grid; gap: 10px; }
+.unlock-form label { font-size: 14px; font-weight: 600; }
+.unlock-form input {
+  width: 100%;
+  height: 44px;
+  padding: 0 13px;
+  border: 1px solid #cfd2d8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--foreground);
+  font: inherit;
+  outline: none;
+}
+.unlock-form input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14); }
+.unlock-form button {
+  height: 44px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.unlock-form button:hover { background: #1d4ed8; }
+.unlock-error { margin: 2px 0 0; color: #b42318; font-size: 14px; }
+
 @media (max-width: 520px) {
   .header-inner, .page { width: min(100% - 24px, 800px); }
   .note { border-radius: 12px; }

@@ -10,7 +10,7 @@ export type LegacyNote = {
 
 export type PublicNoteState =
   | { kind: "available"; note: LegacyNote }
-  | { kind: "protected" }
+  | { kind: "protected"; note: LegacyNote }
   | { kind: "unavailable" };
 
 const ACTIVE_STATUSES = new Set(["active", "1"]);
@@ -24,6 +24,6 @@ export function publicNoteState(note: LegacyNote): PublicNoteState {
   ) {
     return { kind: "unavailable" };
   }
-  if (note.password?.trim()) return { kind: "protected" };
+  if (note.password?.trim()) return { kind: "protected", note };
   return { kind: "available", note };
 }
