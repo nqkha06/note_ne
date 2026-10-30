@@ -1,0 +1,33 @@
+# App tương thích URL note legacy. Database nằm ở deployment riêng nhưng phải
+# cùng dokploy-network; app chỉ chạy SELECT trên legacy_stu.note_links.
+services:
+  note:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      MYSQL_HOST: ${MYSQL_HOST:?Set MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-legacy_stu}
+      MYSQL_USER: ${MYSQL_USER:?Set MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+      MYSQL_CONNECTION_LIMIT: ${MYSQL_CONNECTION_LIMIT:-5}
+      MYSQL_SSL_MODE: ${MYSQL_SSL_MODE:-disabled}
+    expose:
+      - "3001"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [dokploy-network]
+
+networks:
+  dokploy-network:
+    external: true
