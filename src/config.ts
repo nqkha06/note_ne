@@ -41,7 +41,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
   }
 
   return {
-    host: read(env, "HOST") ?? "0.0.0.0",
+    host: read(env, "BIND_HOST") ?? "0.0.0.0",
     port: integer(env, "PORT", 3001, 1, 65_535),
     mysql: {
       host: required(env, "MYSQL_HOST"),

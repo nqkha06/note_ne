@@ -25,7 +25,7 @@ RUN pnpm build
 FROM node:22-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
-    HOST=0.0.0.0 \
+    BIND_HOST=0.0.0.0 \
     PORT=3001 \
     PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH

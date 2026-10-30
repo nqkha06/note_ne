@@ -64,3 +64,7 @@ Không cấp quyền `INSERT`, `UPDATE`, `DELETE` hay quyền trên PostgreSQL. 
 
 MariaDB legacy phải tiếp tục chạy trong thời gian cần hỗ trợ link cũ; không thể
 tắt service đó sau migration nếu app này còn phục vụ người dùng.
+
+App dùng `BIND_HOST=0.0.0.0` để chọn địa chỉ lắng nghe. Không dùng biến `HOST`
+vì một số nền tảng deploy tự gán biến đó thành hostname hoặc IP public không
+thuộc container, dẫn tới lỗi `EADDRNOTAVAIL`.
