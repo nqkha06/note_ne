@@ -1,4 +1,7 @@
+import { readFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { extname, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   clearSessionCookie,
@@ -37,6 +40,7 @@ const ALIAS = /^[A-Za-z0-9_-]{1,255}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ACTIVE_USER_STATUS = "active";
 const MAX_NOTE_BYTES = 65_535;
+const TINYMCE_ROOT = fileURLToPath(new URL("../node_modules/tinymce/", import.meta.url));
 const SECURITY_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
   "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
@@ -45,6 +49,7 @@ const SECURITY_HEADERS = {
   "X-Frame-Options": "DENY",
   "X-Robots-Tag": "noindex, nofollow",
 } as const;
+const EDITOR_CSP = "default-src 'none'; script-src 'self'; connect-src 'self' blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 
 type Logger = (error: unknown) => void;
 type HandlerOptions = { sessionSecret: string; logError?: Logger };
@@ -55,21 +60,25 @@ function send(
   response: ServerResponse,
   status: number,
   contentType: string,
-  body: string,
+  body: string | Buffer,
   headers: Record<string, string> = {},
 ) {
   response.writeHead(status, {
     ...SECURITY_HEADERS,
     "Cache-Control": "private, no-store",
     "Content-Type": contentType,
-    "Content-Length": Buffer.byteLength(body),
+    "Content-Length": Buffer.isBuffer(body) ? body.length : Buffer.byteLength(body),
     ...headers,
   });
   response.end(request.method === "HEAD" ? undefined : body);
 }
 
-function html(request: IncomingMessage, response: ServerResponse, status: number, body: string) {
-  send(request, response, status, "text/html; charset=utf-8", body);
+function html(request: IncomingMessage, response: ServerResponse, status: number, body: string, headers: Record<string, string> = {}) {
+  send(request, response, status, "text/html; charset=utf-8", body, headers);
+}
+
+function editorHtml(request: IncomingMessage, response: ServerResponse, status: number, body: string) {
+  html(request, response, status, body, { "Content-Security-Policy": EDITOR_CSP });
 }
 
 function redirect(request: IncomingMessage, response: ServerResponse, location: string, headers: Record<string, string> = {}) {
@@ -136,6 +145,31 @@ async function authenticate(request: IncomingMessage, repository: NoteRepository
   return { session, user };
 }
 
+async function tinyMceAsset(pathname: string) {
+  const encoded = pathname.slice("/vendor/tinymce/".length);
+  let relative: string;
+  try { relative = decodeURIComponent(encoded); } catch { return null; }
+  if (!relative || relative.includes("\\") || relative.split("/").some((part) => part === ".." || part === "")) return null;
+  const extension = extname(relative).toLowerCase();
+  const contentTypes: Record<string, string> = {
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".ttf": "font/ttf",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+  };
+  const contentType = contentTypes[extension];
+  if (!contentType) return null;
+  const filename = resolve(TINYMCE_ROOT, relative);
+  if (!filename.startsWith(`${resolve(TINYMCE_ROOT)}${sep}`)) return null;
+  try {
+    return { body: await readFile(filename), contentType };
+  } catch {
+    return null;
+  }
+}
+
 export function createRequestHandler(repository: NoteRepository, options: HandlerOptions) {
   if (options.sessionSecret.length < 32) throw new Error("sessionSecret must contain at least 32 characters");
   const logError = options.logError ?? console.error;
@@ -149,6 +183,16 @@ export function createRequestHandler(repository: NoteRepository, options: Handle
     }
 
     const url = new URL(request.url ?? "/", "http://localhost");
+    if (url.pathname.startsWith("/vendor/tinymce/")) {
+      if (request.method === "POST") return methodNotAllowed(request, response);
+      const asset = await tinyMceAsset(url.pathname);
+      if (!asset) {
+        send(request, response, 404, "text/plain; charset=utf-8", "Not Found");
+        return;
+      }
+      send(request, response, 200, asset.contentType, asset.body, { "Cache-Control": "public, max-age=86400" });
+      return;
+    }
     if (url.pathname === "/styles.css" || url.pathname === "/editor.js" || url.pathname === "/password-visibility.js") {
       if (request.method === "POST") return methodNotAllowed(request, response);
       const isScript = url.pathname === "/editor.js";
@@ -245,23 +289,23 @@ export function createRequestHandler(repository: NoteRepository, options: Handle
           return;
         }
         if (request.method !== "POST") {
-          html(request, response, 200, renderEditor(auth.user, note, auth.session.csrf));
+          editorHtml(request, response, 200, renderEditor(auth.user, note, auth.session.csrf));
           return;
         }
         let form: URLSearchParams | null;
         try { form = await readForm(request, 160_000); } catch {
-          html(request, response, 413, renderEditor(auth.user, note, auth.session.csrf, "Nội dung gửi lên quá lớn."));
+          editorHtml(request, response, 413, renderEditor(auth.user, note, auth.session.csrf, "Nội dung gửi lên quá lớn."));
           return;
         }
         const title = form?.get("title")?.trim() ?? "";
         const content = sanitizeNoteContent(form?.get("content") ?? "");
         if (!csrfMatches(auth.session.csrf, form?.get("csrf") ?? null)) {
-          html(request, response, 403, renderEditor(auth.user, note, auth.session.csrf, "Phiên làm việc không hợp lệ. Vui lòng tải lại trang.", { title, content }));
+          editorHtml(request, response, 403, renderEditor(auth.user, note, auth.session.csrf, "Phiên làm việc không hợp lệ. Vui lòng tải lại trang.", { title, content }));
           return;
         }
         const plainText = sanitizeNoteContent(content).replace(/<[^>]*>/g, "").replaceAll("&nbsp;", " ").trim();
         if (title.length > 255 || Buffer.byteLength(content, "utf8") > MAX_NOTE_BYTES || plainText === "") {
-          html(request, response, 400, renderEditor(auth.user, note, auth.session.csrf, "Tiêu đề hoặc nội dung không hợp lệ. Nội dung không được để trống và phải nhỏ hơn 64 KB.", { title, content }));
+          editorHtml(request, response, 400, renderEditor(auth.user, note, auth.session.csrf, "Tiêu đề hoặc nội dung không hợp lệ. Nội dung không được để trống và phải nhỏ hơn 64 KB.", { title, content }));
           return;
         }
         const updated = await repository.updateOwned(note.id, auth.user.id, title || null, content);

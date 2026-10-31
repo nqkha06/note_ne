@@ -1,33 +1,28 @@
 export const editorScript = String.raw`
 (() => {
-  const editor = document.querySelector('[data-editor]');
-  const input = document.querySelector('[data-editor-input]');
-  const form = editor?.closest('form');
-  if (!(editor instanceof HTMLElement) || !(input instanceof HTMLTextAreaElement) || !(form instanceof HTMLFormElement)) return;
-
-  const sync = () => { input.value = editor.innerHTML; };
-  document.querySelectorAll('[data-command]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const command = button.getAttribute('data-command');
-      if (!command) return;
-      editor.focus();
-      if (command === 'createLink') {
-        const url = window.prompt('Nhập URL liên kết (https://...)');
-        if (url) document.execCommand(command, false, url);
-      } else {
-        document.execCommand(command, false);
-      }
-      sync();
-    });
+  if (!window.tinymce) return;
+  window.tinymce.init({
+    selector: '#content-editor',
+    license_key: 'gpl',
+    base_url: '/vendor/tinymce',
+    suffix: '.min',
+    height: 500,
+    menubar: false,
+    branding: false,
+    promotion: false,
+    resize: true,
+    plugins: 'autolink code link lists table',
+    toolbar: 'undo redo | blocks | bold italic underline strikethrough | bullist numlist blockquote | link table | removeformat code',
+    toolbar_mode: 'sliding',
+    content_css: '/vendor/tinymce/skins/content/default/content.min.css',
+    content_security_policy: "default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;",
+    browser_spellcheck: true,
+    contextmenu: false,
+    link_default_target: '_blank',
+    link_assume_external_targets: 'https',
+    setup(editor) {
+      editor.on('change input undo redo', () => editor.save());
+    }
   });
-  document.querySelector('[data-block]')?.addEventListener('change', (event) => {
-    const select = event.currentTarget;
-    if (!(select instanceof HTMLSelectElement)) return;
-    editor.focus();
-    document.execCommand('formatBlock', false, select.value);
-    sync();
-  });
-  editor.addEventListener('input', sync);
-  form.addEventListener('submit', sync);
 })();
 `;

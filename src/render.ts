@@ -3,7 +3,7 @@ import sanitizeHtml from "sanitize-html";
 import type { LegacyNote } from "./note.js";
 import type { LegacyUser, OwnedNote, OwnedNoteSummary } from "./note-repository.js";
 
-const ASSET_VERSION = "20261031-1";
+const ASSET_VERSION = "20261031-2";
 
 function escapeHtml(value: string) {
   return value
@@ -85,7 +85,7 @@ function document(title: string, main: string, options: { user?: LegacyUser; scr
         <a href="/notes">Ghi chú của tôi</a>
         <span class="account-name">${escapeHtml(options.user.name)}</span>
       </nav>`
-    : "";
+    : '<a class="header-login" href="/login">Đăng nhập</a>';
   return `<!doctype html>
 <html lang="vi">
 <head>
@@ -248,30 +248,11 @@ export function renderEditor(
       <label for="title">Tiêu đề</label>
       <input id="title" name="title" type="text" value="${escapeHtml(values.title)}" maxlength="255">
       <label for="content-editor">Nội dung</label>
-      <div class="editor-shell">
-        <div class="editor-toolbar" role="toolbar" aria-label="Định dạng nội dung">
-          <select data-block aria-label="Kiểu đoạn văn">
-            <option value="p">Đoạn văn</option>
-            <option value="h2">Tiêu đề 2</option>
-            <option value="h3">Tiêu đề 3</option>
-            <option value="blockquote">Trích dẫn</option>
-            <option value="pre">Mã nguồn</option>
-          </select>
-          <button type="button" data-command="bold" aria-label="In đậm"><strong>B</strong></button>
-          <button type="button" data-command="italic" aria-label="In nghiêng"><em>I</em></button>
-          <button type="button" data-command="underline" aria-label="Gạch chân"><u>U</u></button>
-          <button type="button" data-command="insertUnorderedList" aria-label="Danh sách dấu chấm">• Danh sách</button>
-          <button type="button" data-command="insertOrderedList" aria-label="Danh sách số">1. Danh sách</button>
-          <button type="button" data-command="createLink" aria-label="Chèn liên kết">Liên kết</button>
-          <button type="button" data-command="removeFormat" aria-label="Xóa định dạng">Xóa định dạng</button>
-        </div>
-        <div id="content-editor" class="rich-editor note-body" contenteditable="true" data-editor role="textbox" aria-multiline="true">${safeContent}</div>
-      </div>
-      <textarea class="visually-hidden" name="content" data-editor-input aria-hidden="true" tabindex="-1">${escapeHtml(safeContent)}</textarea>
+      <textarea id="content-editor" class="rich-editor" name="content" rows="20">${escapeHtml(safeContent)}</textarea>
       ${error ? `<p class="form-error" role="alert">${escapeHtml(error)}</p>` : ""}
       <div class="editor-actions"><a class="secondary-button" href="/notes">Hủy</a><button class="primary-button" type="submit">Lưu thay đổi</button></div>
     </form>`,
-    { user, scripts: ["/editor.js"] },
+    { user, scripts: ["/vendor/tinymce/tinymce.min.js", "/editor.js"] },
   );
 }
 

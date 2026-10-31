@@ -111,6 +111,7 @@ describe("HTTP app", () => {
     assert.equal(response.status, 200);
     assert.match(body, /data-password-toggle/);
     assert.match(body, /data-eye-off/);
+    assert.match(body, /class="header-login" href="\/login">Đăng nhập/);
     assert.match(body, /\/password-visibility\.js/);
     const script = await fetch(`${origin}/password-visibility.js`);
     assert.equal(script.status, 200);
@@ -194,7 +195,9 @@ describe("HTTP app", () => {
     const editPage = await fetch(`${origin}/notes/12/edit`, { headers: { Cookie: cookie } });
     const editHtml = await editPage.text();
     assert.equal(editPage.status, 200);
-    assert.match(editHtml, /contenteditable="true"/);
+    assert.match(editHtml, /id="content-editor"/);
+    assert.match(editHtml, /\/vendor\/tinymce\/tinymce\.min\.js/);
+    assert.match(editPage.headers.get("content-security-policy") ?? "", /style-src 'self' 'unsafe-inline'/);
     const csrf = /name="csrf" value="([^"]+)"/.exec(editHtml)?.[1];
     assert.ok(csrf);
 
@@ -208,6 +211,13 @@ describe("HTTP app", () => {
     assert.equal(save.headers.get("location"), "/notes?updated=1");
     assert.equal(ownedNotes.get(12)?.title, "Tiêu đề mới");
     assert.equal(ownedNotes.get(12)?.content, "<p>Nội dung <strong>mới</strong></p>");
+  });
+
+  it("serves self-hosted TinyMCE assets without exposing arbitrary files", async () => {
+    const script = await fetch(`${origin}/vendor/tinymce/tinymce.min.js`);
+    assert.equal(script.status, 200);
+    assert.match(script.headers.get("content-type") ?? "", /text\/javascript/);
+    assert.equal((await fetch(`${origin}/vendor/tinymce/../package.json`)).status, 404);
   });
 
   it("rejects an edit without valid CSRF and hides notes not owned by the user", async () => {

@@ -166,6 +166,22 @@ h1 {
 .account-nav a, .back-link, .note-alias, .editor-heading a { color: var(--brand); text-decoration: none; }
 .account-nav a:hover, .back-link:hover, .note-alias:hover, .editor-heading a:hover { text-decoration: underline; }
 .account-name { color: var(--muted); }
+.header-login {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.header-login:hover { background: #1d4ed8; }
+.header-login:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.2); outline-offset: 2px; }
 
 .auth-card {
   width: min(100%, 460px);
@@ -247,12 +263,8 @@ h1 {
 .empty-state p { margin: 0; color: var(--muted); }
 
 .editor-form { gap: 10px; }
-.editor-shell { overflow: hidden; margin-bottom: 6px; border: 1px solid #cfd2d8; border-radius: 10px; }
-.editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border-bottom: 1px solid var(--border); background: #f8f9fa; }
-.editor-toolbar button, .editor-toolbar select { min-height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--foreground); font: inherit; font-size: 13px; cursor: pointer; }
-.editor-toolbar button:hover { border-color: #b9bdc5; background: #f3f4f6; }
-.rich-editor { min-height: 360px; padding: 20px; outline: none; white-space: normal; }
-.rich-editor:empty::before { content: "Nhập nội dung ghi chú…"; color: #8b9099; pointer-events: none; }
+.rich-editor { width: 100%; min-height: 500px; padding: 16px; border: 1px solid #cfd2d8; border-radius: 10px; color: var(--foreground); font: inherit; }
+.tox.tox-tinymce { margin-bottom: 6px; border-color: #cfd2d8; border-radius: 10px; }
 .editor-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
@@ -263,7 +275,6 @@ h1 {
   .dashboard-heading { align-items: center; }
   .note-row { align-items: flex-start; }
   .note-row .secondary-button { min-height: 38px; }
-  .editor-toolbar { gap: 4px; }
-  .rich-editor { min-height: 300px; padding: 16px; }
+  .rich-editor { min-height: 380px; }
 }
 `;

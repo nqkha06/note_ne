@@ -19,8 +19,8 @@ PostgreSQL và không ghi view, access log hay revenue.
   handler, inline style và URL scheme nguy hiểm đều bị loại bỏ.
 - `/login` xác thực trực tiếp `users.email/password`; chỉ user `active` được vào.
 - `/notes` liệt kê note chưa soft-delete của tài khoản đang đăng nhập.
-- `/notes/:id/edit` cho sửa `title` và `content` bằng editor HTML; alias, mật
-  khẩu, trạng thái và hạn dùng không bị thay đổi.
+- `/notes/:id/edit` cho sửa `title` và `content` bằng TinyMCE 8 self-hosted;
+  alias, mật khẩu, trạng thái và hạn dùng không bị thay đổi.
 - Không có route, API hay nút tạo note mới.
 - Mọi trang note dùng `noindex`, `no-store`; JavaScript chỉ được dùng cho editor.
 
@@ -81,3 +81,10 @@ tắt service đó sau migration nếu app này còn phục vụ người dùng.
 App dùng `BIND_HOST=0.0.0.0` để chọn địa chỉ lắng nghe. Không dùng biến `HOST`
 vì một số nền tảng deploy tự gán biến đó thành hostname hoặc IP public không
 thuộc container, dẫn tới lỗi `EADDRNOTAVAIL`.
+
+## Giấy phép editor
+
+TinyMCE được đóng gói từ dependency npm và chạy self-hosted với
+`license_key: "gpl"` theo GPLv2+. Không dùng Tiny Cloud hoặc gửi nội dung note
+ra dịch vụ ngoài. Nếu sản phẩm triển khai theo giấy phép thương mại, thay cấu
+hình này bằng TinyMCE 8 commercial license key hợp lệ.
