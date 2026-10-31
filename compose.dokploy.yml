@@ -1,5 +1,5 @@
 # App tương thích URL note legacy. Database nằm ở deployment riêng nhưng phải
-# cùng dokploy-network; app chỉ chạy SELECT trên legacy_stu.note_links.
+# cùng dokploy-network; app chỉ đọc user/note và sửa nội dung note thuộc owner.
 services:
   note:
     build:
@@ -11,6 +11,7 @@ services:
       NODE_ENV: production
       BIND_HOST: 0.0.0.0
       PORT: 3001
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET}
       MYSQL_HOST: ${MYSQL_HOST:?Set MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT:-3306}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-legacy_stu}

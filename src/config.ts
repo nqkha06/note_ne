@@ -1,6 +1,7 @@
 export type AppConfig = {
   host: string;
   port: number;
+  sessionSecret: string;
   mysql: {
     host: string;
     port: number;
@@ -40,9 +41,15 @@ export function loadConfig(env: Env = process.env): AppConfig {
     throw new Error("MYSQL_SSL_MODE phải là disabled hoặc required.");
   }
 
+  const sessionSecret = required(env, "SESSION_SECRET");
+  if (sessionSecret.length < 32) {
+    throw new Error("SESSION_SECRET phải có ít nhất 32 ký tự.");
+  }
+
   return {
     host: read(env, "BIND_HOST") ?? "0.0.0.0",
     port: integer(env, "PORT", 3001, 1, 65_535),
+    sessionSecret,
     mysql: {
       host: required(env, "MYSQL_HOST"),
       port: integer(env, "MYSQL_PORT", 3306, 1, 65_535),

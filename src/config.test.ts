@@ -7,6 +7,7 @@ const database = {
   MYSQL_HOST: "legacy-mysql",
   MYSQL_DATABASE: "legacy_stu",
   MYSQL_USER: "note_reader",
+  SESSION_SECRET: "test-session-secret-with-at-least-32-characters",
 };
 
 describe("config", () => {
@@ -24,8 +25,9 @@ describe("config", () => {
   });
 
   it("rejects missing database config and invalid numeric values", () => {
-    assert.throws(() => loadConfig({}), /MYSQL_HOST/);
+    assert.throws(() => loadConfig({ SESSION_SECRET: database.SESSION_SECRET }), /MYSQL_HOST/);
     assert.throws(() => loadConfig({ ...database, PORT: "0" }), /PORT/);
     assert.throws(() => loadConfig({ ...database, MYSQL_SSL_MODE: "maybe" }), /MYSQL_SSL_MODE/);
+    assert.throws(() => loadConfig({ ...database, SESSION_SECRET: "short" }), /SESSION_SECRET/);
   });
 });

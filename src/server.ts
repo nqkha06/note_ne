@@ -6,7 +6,7 @@ import { createNoteRepository } from "./note-repository.js";
 
 const config = loadConfig();
 const repository = createNoteRepository(config.mysql);
-const server = createServer(createRequestHandler(repository));
+const server = createServer(createRequestHandler(repository, { sessionSecret: config.sessionSecret }));
 
 server.listen(config.port, config.host, () => {
   console.info(`stu-note listening on ${config.host}:${config.port}`);
